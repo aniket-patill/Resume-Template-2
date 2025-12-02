@@ -17,10 +17,20 @@
         body {
             font-family: "Times New Roman", Times, serif;
             font-size: 11pt;
-            background-color: white; /* Dark background for browser view to make paper pop */
+            background-color: #dee3e7; /* Darker background for viewer contrast */
             display: flex;
             justify-content: center;
-            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Viewer Container */
+        #viewer-container {
+            margin: 20px auto;
+            position: relative;
+            transform-origin: top left;
         }
 
         /* Paper / Container Styling */
@@ -30,6 +40,8 @@
             background-color: white;
             padding: 30px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
         }
 
         /* Header Section */
@@ -60,22 +72,13 @@
             text-align: right;
         }
 
-        .contact-info {
-            display: flex;
-            justify-content: space-between;
-            background-color: #f2f2f2;
-            padding: 5px 10px;
-            margin-top: 5px;
-            font-size: 10pt;
-            border-bottom: 2px solid #335588; /* Just to match the look */
-        }
-        
         /* The Gray Contact Bar */
         .contact-bar {
             background-color: #f2f2f2; /* Exact light grey */
             display: flex;
             justify-content: space-between; /* Spreads items evenly */
             align-items: center;
+            flex-wrap: wrap;
             padding: 4px 30px;
             margin-top: 4px;
             margin-left: -30px;
@@ -86,16 +89,20 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            min-width: 0; /* Allow flex items to shrink */
         }
 
         .contact-item a {
             color: blue;
             text-decoration: underline;
+            word-break: break-all; /* Handle long URLs */
         }
 
         .contact-item svg {
             width: 14px;
             height: 14px;
+            flex-shrink: 0; /* Prevent SVG from shrinking */
+            min-width: 14px; /* Ensure minimum size */
         }
 
         /* Section Headers */
@@ -117,7 +124,6 @@
 
         th, td {
             border: 1px solid #ccc;
-            /* padding: 4px 6px; */
             vertical-align: top;
         }
 
@@ -162,7 +168,7 @@
         
         .content-column ul li {
             margin-bottom: 2px;
-            line-height: 1;
+            line-height: 1.2; /* Slightly increased for better readability */
         }
 
         /* Utility for dates alignment in headers */
@@ -181,56 +187,6 @@
             background-color: #f2f2f2;
         }
 
-        /* --- PRINT OPTIMIZATION (A4) --- */
-        @page {
-            size: A4;
-            margin: 10mm; /* Printer margin */
-        }
-
-        @media print {
-            body {
-                background-color: white;
-                margin: 0;
-                padding: 0;
-            }
-
-            .resume-container {
-                width: 100%;
-                max-width: 100%;
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-                border: none;
-            }
-
-            /* Ensure links print as text (optional, usually preferred) */
-            a {
-                text-decoration: none;
-                color: black;
-            }
-
-            /* Ensure background colors print */
-            .section-header, th, .label-column, .sub-header-row td {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Hide scrollbars in print */
-            .table-responsive {
-                overflow: visible;
-            }
-            
-            table {
-                page-break-inside: auto;
-                min-width: 100%; /* Reset mobile forced width */
-            }
-            
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-        }
-
         .cell-center {
            text-align: center;
            vertical-align: middle;
@@ -241,225 +197,301 @@
            margin: 0 auto;
         }
 
+        /* --- PRINT OPTIMIZATION (A4) --- */
+        @page {
+            size: A4;
+            margin: 0; /* Remove default print margins so our container controls it */
+        }
+
+        @media print {
+            body {
+                background-color: white;
+                margin: 0;
+                padding: 0;
+                display: block;
+            }
+
+            #viewer-container {
+                margin: 0;
+                transform: none !important;
+                width: 100%;
+            }
+
+            .resume-container {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                padding: 30px; /* Keep padding for print */
+                box-shadow: none;
+                border: none;
+                min-height: auto;
+            }
+
+            /* Ensure background colors print */
+            .section-header, th, .label-column, .sub-header-row td, .role-column, .ec-label, .contact-bar {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            a {
+                text-decoration: none;
+                color: black;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="resume-container">
-        <header>
-            <div class="header-top">
-                <h1>Padam Bhansali</h1>
-                <div class="subtitle">Chartered Accountant (Nov’24) | Flipkart</div>
-            </div>
-            
-            <div class="contact-bar">
-                <div class="contact-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                        <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                    <a href="mailto:Bhansalipadam7@gmail.com">Bhansalipadam7@gmail.com</a>
+    <div id="viewer-container">
+        <div class="resume-container">
+            <header>
+                <div class="header-top">
+                    <h1>Padam Bhansali</h1>
+                    <div class="subtitle">Chartered Accountant (Nov’24) | Flipkart</div>
                 </div>
-                <div class="contact-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                    </svg>
-                    <span>+91 9313148303</span>
+                
+                <div class="contact-bar">
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <a href="mailto:Bhansalipadam7@gmail.com">Bhansalipadam7@gmail.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <span>+91 9313148303</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24" fill="black" stroke="black" stroke-width="2">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                        <span>Bengaluru</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24" fill="black">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                        </svg>
+                        <a href="https://www.linkedin.com/in/ca-padam-bhansali">www.linkedin.com/in/ca-padam-bhansali</a>
+                    </div>
                 </div>
-                <div class="contact-item">
-                    <svg viewBox="0 0 24 24" fill="black" stroke="black" stroke-width="2">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <span>Bengaluru</span>
-                </div>
-                <div class="contact-item">
-                    <svg viewBox="0 0 24 24" fill="black">
-                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                    <a href="https://www.linkedin.com/in/ca-padam-bhansali">www.linkedin.com/in/ca-padam-bhansali</a>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <div class="section-header">PROFESSIONAL & EDUCATIONAL QUALIFICATIONS</div>
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-exam">EXAMINATION</th>
-                    <th class="col-year">YEAR</th>
-                    <th class="col-inst">INSTITUTION</th>
-                    <th class="col-perc">PERCENTAGE</th>
-                    <th class="col-remark">REMARKS</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="cell-center">CA Final</td>
-                    <td class="cell-center">Nov 2024</td>
-                    <td rowspan="3" class="text-center" style="vertical-align: middle;">
-                        The Institute of Chartered Accountants of India<br>
-                        <strong>(Cleared all levels in first attempt)</strong>
+            <div class="section-header">PROFESSIONAL & EDUCATIONAL QUALIFICATIONS</div>
+            <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-exam">EXAMINATION</th>
+                        <th class="col-year">YEAR</th>
+                        <th class="col-inst">INSTITUTION</th>
+                        <th class="col-perc">PERCENTAGE</th>
+                        <th class="col-remark">REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cell-center">CA Final</td>
+                        <td class="cell-center">Nov 2024</td>
+                        <td rowspan="3" class="text-center" style="vertical-align: middle;">
+                            The Institute of Chartered Accountants of India<br>
+                            <strong>(Cleared all levels in first attempt)</strong>
+                        </td>
+                        <td class="cell-center">68%</td>
+                        <td class="cell-center"><strong>State Rank 1</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="cell-center">CA Intermediate</td>
+                        <td class="cell-center">Nov 2021</td>
+                        <td class="cell-center">60%</td>
+                        <td class="cell-center">Exemption in All Group 1 Papers</td>
+                    </tr>
+                    <tr>
+                        <td class="cell-center">CA Foundation</td>
+                        <td class="cell-center">Nov 2020</td>
+                        <td class="cell-center">75%</td>
+                        <td class="cell-center">70+ Score in all subjects</td>
+                    </tr>
+                    <tr>
+                        <td class="cell-center">B.Com</td>
+                        <td class="cell-center">Mar 2023</td>
+                        <td class="cell-center">RJTCC (Gujarat University)</td>
+                        <td class="cell-center">76%</td>
+                        <td class="cell-center">First Class Distinction</td>
+                    </tr>
+                    <tr>
+                        <td class="cell-center">Class XII (GSEB)</td>
+                        <td class="cell-center">Mar 2020</td>
+                        <td class="cell-center">Devasya International School</td>
+                        <td class="cell-center">88%</td>
+                        <td class="cell-center">School Rank 1</td>
+                    </tr>
+                    <tr>
+                        <td class="cell-center">Class X (TSEB)</td>
+                        <td class="cell-center">Mar 2018</td>
+                        <td class="cell-center">New Vision School</td>
+                        <td class="cell-center">92%</td>
+                        <td class="cell-center">School Rank 1</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+
+            <div class="section-header">WORK EXPERIENCE</div>
+            <div class="table-responsive">
+            <table>
+                <tr class="sub-header-row">
+                    <td colspan="2">
+                        <div class="flex-between">
+                            <span><strong>Flipkart (Bengaluru) – Industrial Trainee (Business Finance)</strong></span>
+                            <span><strong>(Dec’23 – Present)</strong></span>
+                        </div>
                     </td>
-                    <td class="cell-center">68%</td>
-                    <td class="cell-center"><strong>State Rank 1</strong></td>
                 </tr>
                 <tr>
-                    <td class="cell-center">CA Intermediate</td>
-                    <td class="cell-center">Nov 2021</td>
-                    <td class="cell-center">60%</td>
-                    <td class="cell-center">Exemption in All Group 1 Papers</td>
+                    <td class="role-column">Business Finance</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Assisted in identifying and implementing <strong>cost-saving strategies</strong> across PAN India Fulfillment and Sortation Centers, driving operational efficiency and contributing to <strong>Annual Savings of ₹100 Crores.</strong></li>
+                            <li>Assisted in the <strong>optimization and finalization of monthly plans</strong> for over ₹100 crore in monthly operating expenses. Collaborated with multiple stakeholders including Planning, Operations, Design, HR, and Procurement.</li>
+                            <li>Facilitated in an approximate <strong>₹50 lakh monthly cost reduction</strong> by eliminating buffers, design improvements and better cross -deployment of manpower.</li>
+                            <li>Efficiently <strong>managed multiple responsibilities</strong> alongside core duties, including overseeing the accrual process for the South Zone, supporting the Zonal Finance Team, managing finance involved in large inventory supply chain.</li>
+                            <li>Prepared a comprehensive <strong>dashboard to track Operative KPIs</strong> across different functions and monitor manpower changes (site-wise and function-wise). Solely responsible for reporting results and conclusions from the analysis to the upper management.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr class="sub-header-row">
+                    <td colspan="2">
+                        <div class="flex-between">
+                            <span><strong>Goenka Mehta & Associates (Ahmedabad) – Article Assistant (Accounting)</strong></span>
+                            <span><strong>(Jan’23 – Nov’23)</strong></span>
+                        </div>
+                    </td>
                 </tr>
                 <tr>
-                    <td class="cell-center">CA Foundation</td>
-                    <td class="cell-center">Nov 2020</td>
-                    <td class="cell-center">75%</td>
-                    <td class="cell-center">70+ Score in all subjects</td>
+                    <td class="role-column">Accounting</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Managed <strong>end-to-end accounting processes</strong> for New Zealand based companies, resulting in higher accuracy in their financial records and streamlined accounting workflows.</li>
+                            <li>Ensured timely <strong>statutory compliance</strong>, reducing penalties through efficient GST filing and taxation-related services for offshore clients.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr class="sub-header-row">
+                    <td colspan="2">
+                        <div class="flex-between">
+                            <span><strong>Kantilal Patel & Co. (Ahmedabad) – Article Assistant (Auditing and Assurance)</strong></span>
+                            <span><strong>(Apr’22 – Dec’22)</strong></span>
+                        </div>
+                    </td>
                 </tr>
                 <tr>
-                    <td class="cell-center">B.Com</td>
-                    <td class="cell-center">Mar 2023</td>
-                    <td class="cell-center">RJTCC (Gujarat University)</td>
-                    <td class="cell-center">76%</td>
-                    <td class="cell-center">First Class Distinction</td>
+                    <td class="role-column">Auditing &<br>Assurance</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Assisted in <strong>statutory audit</strong> of a cooperative bank with over 75 branches, <strong>₹10,000 Cr in deposits</strong>, identifying critical areas of improvement.</li>
+                            <li>Conducted comprehensive <strong>statutory audits, tax audits, GST audits</strong>, and <strong>internal audits</strong> for 30+ clients across industries such as healthcare, construction, VC's, tobacco, ice cream manufacturing, e-commerce, logistics etc.</li>
+                            <li>Prepared and <strong>filed income tax returns</strong> for individuals, trusts, and companies, optimizing tax savings through tax planning and claiming deductions under various sections, assisted in <strong>GST filing</strong> for various organizations, ensuring timely and accurate submissions.</li>
+                        </ul>
+                    </td>
                 </tr>
-                <tr>
-                    <td class="cell-center">Class XII (GSEB)</td>
-                    <td class="cell-center">Mar 2020</td>
-                    <td class="cell-center">Devasya International School</td>
-                    <td class="cell-center">88%</td>
-                    <td class="cell-center">School Rank 1</td>
-                </tr>
-                <tr>
-                    <td class="cell-center">Class X (TSEB)</td>
-                    <td class="cell-center">Mar 2018</td>
-                    <td class="cell-center">New Vision School</td>
-                    <td class="cell-center">92%</td>
-                    <td class="cell-center">School Rank 1</td>
-                </tr>
-            </tbody>
-        </table>
+            </table>
+            </div>
 
-        <div class="section-header">WORK EXPERIENCE</div>
-        <table>
-            <tr class="sub-header-row">
-                <td colspan="2">
-                    <div class="flex-between">
-                        <span><strong>Flipkart (Bengaluru) – Industrial Trainee (Business Finance)</strong></span>
-                        <span><strong>(Dec’23 – Present)</strong></span>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="role-column">Business Finance</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Assisted in identifying and implementing <strong>cost-saving strategies</strong> across PAN India Fulfillment and Sortation Centers, driving operational efficiency and contributing to <strong>Annual Savings of ₹100 Crores.</strong></li>
-                        <li>Assisted in the <strong>optimization and finalization of monthly plans</strong> for over ₹100 crore in monthly operating expenses. Collaborated with multiple stakeholders including Planning, Operations, Design, HR, and Procurement.</li>
-                        <li>Facilitated in an approximate <strong>₹50 lakh monthly cost reduction</strong> by eliminating buffers, design improvements and better cross -deployment of manpower.</li>
-                        <li>Efficiently <strong>managed multiple responsibilities</strong> alongside core duties, including overseeing the accrual process for the South Zone, supporting the Zonal Finance Team, managing finance involved in large inventory supply chain.</li>
-                        <li>Prepared a comprehensive <strong>dashboard to track Operative KPIs</strong> across different functions and monitor manpower changes (site-wise and function-wise). Solely responsible for reporting results and conclusions from the analysis to the upper management.</li>
-                    </ul>
-                </td>
-            </tr>
-            <tr class="sub-header-row">
-                <td colspan="2">
-                    <div class="flex-between">
-                        <span><strong>Goenka Mehta & Associates (Ahmedabad) – Article Assistant (Accounting)</strong></span>
-                        <span><strong>(Jan’23 – Nov’23)</strong></span>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="role-column">Accounting</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Managed <strong>end-to-end accounting processes</strong> for New Zealand based companies, resulting in higher accuracy in their financial records and streamlined accounting workflows.</li>
-                        <li>Ensured timely <strong>statutory compliance</strong>, reducing penalties through efficient GST filing and taxation-related services for offshore clients.</li>
-                    </ul>
-                </td>
-            </tr>
-            <tr class="sub-header-row">
-                <td colspan="2">
-                    <div class="flex-between">
-                        <span><strong>Kantilal Patel & Co. (Ahmedabad) – Article Assistant (Auditing and Assurance)</strong></span>
-                        <span><strong>(Apr’22 – Dec’22)</strong></span>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="role-column">Auditing &<br>Assurance</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Assisted in <strong>statutory audit</strong> of a cooperative bank with over 75 branches, <strong>₹10,000 Cr in deposits</strong>, identifying critical areas of improvement.</li>
-                        <li>Conducted comprehensive <strong>statutory audits, tax audits, GST audits</strong>, and <strong>internal audits</strong> for 30+ clients across industries such as healthcare, construction, VC's, tobacco, ice cream manufacturing, e-commerce, logistics etc.</li>
-                        <li>Prepared and <strong>filed income tax returns</strong> for individuals, trusts, and companies, optimizing tax savings through tax planning and claiming deductions under various sections, assisted in <strong>GST filing</strong> for various organizations, ensuring timely and accurate submissions.</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
-
-        <div class="section-header">EXTRA CURRICULAR ACTIVTIES, SKILLS, ACHIEVEMENTS & INTERESTS</div>
-        <table>
-            <tr>
-                <td class="ec-label">Position of<br>Responsibility</td>
-                <td class="content-column">
-                    <div class="flex-between" style="padding-left: 5px; padding-right: 6px; font-weight: bold; margin-bottom: 2px;">
-                        <span>My Student Club – Founder</span>
-                        <span>(Dec’22 – Present)</span>
-                    </div>
-                    <ul>
-                        <li>A student social networking platform, achieving <strong>5000+ member registrations</strong> within first quarter with monthly <strong>50K+ site visits</strong>, growing a <strong>25-member team.</strong></li>
-                        <li>Organized <strong>100+ guidance sessions</strong> on CA preparation, industrial training, and skill development, featuring Shark Tank pitchers, influencers, and AIR 1 holders, positively impacting 10,000+ participants.</li>
-                    </ul>
-                </td>
-            </tr>
-            <tr>
-                <td class="ec-label">Technical Skills</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Proficient in MS-Office (<strong>Excel, Word & PowerPoint</strong>), Google Tools (<strong>Sheets & Slides</strong>).</li>
-                        <li>Working Knowledge of <strong>Power Bi.</strong></li>
-                    </ul>
-                </td>
-            </tr>
-            <tr>
-                <td class="ec-label">Significant Awards<br>& Certifications</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Certified <strong>Financial Modeling & Valuation Analyst (FMVA)</strong> by CFI.</li>
-                        <li>Obtained <strong>Research Analyst</strong> Certification from NISM.</li>
-                        <li>Received a Certificate from <strong>Trinity College of London</strong> in English Speaking.</li>
-                        <li>Awarded with <strong>Employee of the Quarter</strong> (Performance Award) at Flipkart during the Internship period.</li>
-                        <li>Achieved <strong>advanced-level certifications</strong> in Power BI and MS Excel.</li>
-                        <li>Consistently ranked among the <strong>top 3 throughout academics.</strong></li>
-                        <li><strong>Winner of Group Discussion</strong> Competition in MCS.</li>
-                    </ul>
-                </td>
-            </tr>
-            <tr>
-                <td class="ec-label">Extra-Curricular</td>
-                <td class="content-column">
-                    <ul>
-                        <li>Built & grew StepFly (Online CA Lecture Portal) to <strong>₹1 Crore in annual revenue.</strong></li>
-                        <li><strong>Hosted</strong> various sessions with 1000+ participants and participated as <strong>Speaker</strong> for student guidance programs.</li>
-                        <li>Authored multiple articles featured in <strong>ICAI Newsletters.</strong></li>
-                        <li><strong>Investor</strong> in stock market & crypto since age 14.</li>
-                        <li>Contributed as <strong>Volunteer</strong> at Ahmedabad National Conference.</li>
-                    </ul>
-                </td>
-            </tr>
-            <tr>
-                <td class="ec-label">Interests</td>
-                <td class="content-column">
-                    <ul>
-                        <li><strong>Content Writing</strong>: Grown LinkedIn following to 10K+ with over 1 million impressions.</li>
-                        <li><strong>Cricket</strong>: <strong>Man of the Match</strong> in Flipkart Finance Team corporate cricket league.</li>
-                        <li><strong>Business Research</strong>: Enthusiastic about analyzing businesses through studying research reports and financials.</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
+            <div class="section-header">EXTRA CURRICULAR ACTIVTIES, SKILLS, ACHIEVEMENTS & INTERESTS</div>
+            <div class="table-responsive">
+            <table>
+                <tr>
+                    <td class="ec-label">Position of<br>Responsibility</td>
+                    <td class="content-column">
+                        <div class="flex-between" style="padding-left: 5px; padding-right: 6px; font-weight: bold; margin-bottom: 2px;">
+                            <span>My Student Club – Founder</span>
+                            <span>(Dec’22 – Present)</span>
+                        </div>
+                        <ul>
+                            <li>A student social networking platform, achieving <strong>5000+ member registrations</strong> within first quarter with monthly <strong>50K+ site visits</strong>, growing a <strong>25-member team.</strong></li>
+                            <li>Organized <strong>100+ guidance sessions</strong> on CA preparation, industrial training, and skill development, featuring Shark Tank pitchers, influencers, and AIR 1 holders, positively impacting 10,000+ participants.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="ec-label">Technical Skills</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Proficient in MS-Office (<strong>Excel, Word & PowerPoint</strong>), Google Tools (<strong>Sheets & Slides</strong>).</li>
+                            <li>Working Knowledge of <strong>Power Bi.</strong></li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="ec-label">Significant Awards<br>& Certifications</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Certified <strong>Financial Modeling & Valuation Analyst (FMVA)</strong> by CFI.</li>
+                            <li>Obtained <strong>Research Analyst</strong> Certification from NISM.</li>
+                            <li>Received a Certificate from <strong>Trinity College of London</strong> in English Speaking.</li>
+                            <li>Awarded with <strong>Employee of the Quarter</strong> (Performance Award) at Flipkart during the Internship period.</li>
+                            <li>Achieved <strong>advanced-level certifications</strong> in Power BI and MS Excel.</li>
+                            <li>Consistently ranked among the <strong>top 3 throughout academics.</strong></li>
+                            <li><strong>Winner of Group Discussion</strong> Competition in MCS.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="ec-label">Extra-Curricular</td>
+                    <td class="content-column">
+                        <ul>
+                            <li>Built & grew StepFly (Online CA Lecture Portal) to <strong>₹1 Crore in annual revenue.</strong></li>
+                            <li><strong>Hosted</strong> various sessions with 1000+ participants and participated as <strong>Speaker</strong> for student guidance programs.</li>
+                            <li>Authored multiple articles featured in <strong>ICAI Newsletters.</strong></li>
+                            <li><strong>Investor</strong> in stock market & crypto since age 14.</li>
+                            <li>Contributed as <strong>Volunteer</strong> at Ahmedabad National Conference.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="ec-label">Interests</td>
+                    <td class="content-column">
+                        <ul>
+                            <li><strong>Content Writing</strong>: Grown LinkedIn following to 10K+ with over 1 million impressions.</li>
+                            <li><strong>Cricket</strong>: <strong>Man of the Match</strong> in Flipkart Finance Team corporate cricket league.</li>
+                            <li><strong>Business Research</strong>: Enthusiastic about analyzing businesses through studying research reports and financials.</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function scaleResume() {
+            const container = document.querySelector('.resume-container');
+            const viewer = document.getElementById('viewer-container');
+            const padding = 20; // Padding around the resume
+            
+            // A4 width in pixels
+            const originalWidth = container.offsetWidth;
+            const windowWidth = window.innerWidth;
+            
+            let scale = 1;
+            if (windowWidth < originalWidth + (padding * 2)) {
+                scale = (windowWidth - (padding * 2)) / originalWidth;
+            }
+            
+            container.style.transform = `scale(${scale})`;
+            container.style.transformOrigin = 'top left';
+            
+            const originalHeight = container.offsetHeight;
+            viewer.style.height = `${originalHeight * scale}px`;
+            viewer.style.width = `${originalWidth * scale}px`;
+        }
+
+        window.addEventListener('load', scaleResume);
+        window.addEventListener('resize', scaleResume);
+    </script>
 
 </body>
 </html>
