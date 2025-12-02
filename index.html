@@ -90,7 +90,7 @@
             display: flex;
             justify-content: space-between; /* Spreads items evenly */
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             padding: 0.45vmin 3.4vmin;
             margin-top: 0.45vmin;
             margin-left: -3.4vmin;
@@ -493,9 +493,9 @@
                 <tr>
                     <td class="ec-label">Position of<br>Responsibility</td>
                     <td class="content-column">
-                        <div class="flex-between" style="padding-left: 0.57vmin; padding-right: 0.68vmin; font-weight: bold; margin-bottom: 0.23vmin;">
+                        <div class="flex-between" style="padding-left: 5px; padding-right: 6px; font-weight: bold; margin-bottom: 2px;">
                             <span>My Student Club – Founder</span>
-                            <span>(Dec'22 – Present)</span>
+                            <span>(Dec’22 – Present)</span>
                         </div>
                         <ul>
                             <li>A student social networking platform, achieving <strong>5000+ member registrations</strong> within first quarter with monthly <strong>50K+ site visits</strong>, growing a <strong>25-member team.</strong></li>
@@ -569,8 +569,7 @@
             let currentPage = createPage();
             wrapper.appendChild(currentPage);
             
-            // Calculate padding bottom in pixels based on viewport
-            const PADDING_BOTTOM = parseFloat(getComputedStyle(sourcePage).paddingBottom);
+            const PADDING_BOTTOM = 30; // Matches CSS padding
             for (let node of contentNodes) {
                 currentPage.appendChild(node);
                 
@@ -682,14 +681,45 @@
             }
         }
 
-        // No scaling function needed - viewport units handle scaling automatically
+        function scaleResume() {
+            const viewer = document.getElementById('viewer-container');
+            const wrapper = document.getElementById('pages-wrapper');
+            const pages = document.querySelectorAll('.resume-container');
+            
+            if (pages.length === 0) return;
+            
+            const padding = 10; 
+            const originalWidth = pages[0].offsetWidth; // 210mm in px
+            const windowWidth = window.innerWidth;
+            
+            let scale = 1;
+            if (windowWidth < originalWidth + (padding * 2)) {
+                scale = (windowWidth - (padding * 2)) / originalWidth;
+            }
+            
+            // Scale the wrapper
+            wrapper.style.transform = `scale(${scale})`;
+            wrapper.style.transformOrigin = 'center';
+            
+            // Adjust viewer size to fit the scaled wrapper
+            const wrapperHeight = wrapper.offsetHeight;
+            const wrapperWidth = wrapper.offsetWidth;
+            
+            viewer.style.width = `${wrapperWidth * scale}px`;
+            viewer.style.height = `${wrapperHeight * scale}px`;
+            
+            // Center it if scaled down
+            if (scale < 1) {
+                 viewer.style.margin = '0 auto';
+            }
+        }
+
         window.addEventListener('load', () => {
             paginate();
+            scaleResume();
         });
 
-        window.addEventListener('resize', () => {
-            paginate();
-        });
+        window.addEventListener('resize', scaleResume);
     </script>
 
 </body>
