@@ -28,20 +28,32 @@
 
         /* Viewer Container */
         #viewer-container {
-            margin: 20px auto;
+            margin: 0 auto;
             position: relative;
-            transform-origin: top left;
+            text-align: center;
+        }
+
+        #pages-wrapper {
+            transform-origin: center;
+            display: inline-block;
+            text-align: left;
         }
 
         /* Paper / Container Styling */
         .resume-container {
             width: 210mm; /* A4 Width */
-            min-height: 297mm;
+            height: 297mm; /* A4 Height - exact size */
             background-color: white;
             padding: 30px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
+            margin-bottom: 30px;
+            box-sizing: border-box; /* Ensure padding is included in height */
+        }
+
+        .resume-container:last-child {
+            margin-bottom: 0;
         }
 
         /* Header Section */
@@ -112,14 +124,14 @@
             font-weight: bold;
             text-transform: uppercase;
             padding: 3px 10px;
-            font-size: 11pt;
+            font-size: 10pt;
         }
 
         /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10.5pt;
+            font-size: 10pt;
         }
 
         th, td {
@@ -168,7 +180,7 @@
         
         .content-column ul li {
             margin-bottom: 2px;
-            line-height: 1.2; /* Slightly increased for better readability */
+            line-height: 1.03; /* Slightly increased for better readability */
         }
 
         /* Utility for dates alignment in headers */
@@ -217,14 +229,25 @@
                 width: 100%;
             }
 
+            #pages-wrapper {
+                transform: none !important;
+            }
+
             .resume-container {
-                width: 100%;
+                width: 210mm; /* Exact A4 width for print */
+                height: 297mm; /* Exact A4 height for print */
                 max-width: 100%;
                 margin: 0;
                 padding: 30px; /* Keep padding for print */
                 box-shadow: none;
                 border: none;
-                min-height: auto;
+                margin-bottom: 0;
+                page-break-after: always;
+                box-sizing: border-box;
+            }
+
+            .resume-container:last-child {
+                page-break-after: auto;
             }
 
             /* Ensure background colors print */
@@ -243,7 +266,8 @@
 <body>
 
     <div id="viewer-container">
-        <div class="resume-container">
+        <div id="pages-wrapper">
+            <div class="resume-container">
             <header>
                 <div class="header-top">
                     <h1>Padam Bhansali</h1>
@@ -464,16 +488,145 @@
             </table>
             </div>
         </div>
+        </div>
     </div>
 
     <script>
-        function scaleResume() {
-            const container = document.querySelector('.resume-container');
-            const viewer = document.getElementById('viewer-container');
-            const padding = 20; // Padding around the resume
+        function paginate() {
+            const wrapper = document.getElementById('pages-wrapper');
+            const sourcePage = wrapper.querySelector('.resume-container');
+            if (!sourcePage) return;
+
+            const contentNodes = Array.from(sourcePage.children);
             
-            // A4 width in pixels
-            const originalWidth = container.offsetWidth;
+            // Clear the wrapper
+            wrapper.innerHTML = '';
+            
+            // Create first page
+            let currentPage = createPage();
+            wrapper.appendChild(currentPage);
+            
+            const PADDING_BOTTOM = 30; // Matches CSS padding
+            for (let node of contentNodes) {
+                currentPage.appendChild(node);
+                
+                // Check overflow
+                if (isOverflowing(currentPage, PADDING_BOTTOM)) {
+                    currentPage.removeChild(node);
+                    
+                    if (node.tagName === 'DIV' && node.classList.contains('table-responsive')) {
+                        splitTable(node, currentPage, wrapper, PADDING_BOTTOM);
+                        // Update currentPage to the last one created
+                        currentPage = wrapper.lastElementChild;
+                    } else {
+                        // Move to next page
+                        currentPage = createPage();
+                        wrapper.appendChild(currentPage);
+                        currentPage.appendChild(node);
+                    }
+                }
+            }
+        }
+
+        function createPage() {
+            const page = document.createElement('div');
+            page.className = 'resume-container';
+            return page;
+        }
+
+        function isOverflowing(page, paddingBottom) {
+            if (page.children.length === 0) return false;
+            const lastChild = page.lastElementChild;
+            const pageRect = page.getBoundingClientRect();
+            const childRect = lastChild.getBoundingClientRect();
+            // We allow a small tolerance (1px) for sub-pixel rendering
+            return childRect.bottom > (pageRect.bottom - paddingBottom + 1);
+        }
+
+        function splitTable(tableWrapper, currentPage, wrapper, paddingBottom) {
+            const originalTable = tableWrapper.querySelector('table');
+            const thead = originalTable.querySelector('thead');
+            const tbody = originalTable.querySelector('tbody');
+            
+            // Rows to process: if tbody exists, use its children, else table children (excluding thead)
+            let rows = [];
+            if (tbody) {
+                rows = Array.from(tbody.children);
+            } else {
+                rows = Array.from(originalTable.querySelectorAll('tr'));
+                if (thead) {
+                    // Filter out rows that are in thead
+                    const headerRows = Array.from(thead.querySelectorAll('tr'));
+                    rows = rows.filter(r => !headerRows.includes(r));
+                }
+            }
+
+            // Create initial split structure
+            let currentWrapper = tableWrapper.cloneNode(false);
+            let currentTable = originalTable.cloneNode(false);
+            currentWrapper.appendChild(currentTable);
+            currentPage.appendChild(currentWrapper);
+            
+            let currentTbody = document.createElement('tbody');
+            if (thead) {
+                currentTable.appendChild(thead.cloneNode(true));
+            }
+            currentTable.appendChild(currentTbody);
+
+            for (let row of rows) {
+                currentTbody.appendChild(row);
+                
+                if (isOverflowing(currentPage, paddingBottom)) {
+                    currentTbody.removeChild(row);
+                    
+                    // If the current table is empty (except header), remove it and move everything to next page
+                    if (currentTbody.children.length === 0) {
+                        currentPage.removeChild(currentWrapper);
+                        
+                        const newPage = createPage();
+                        wrapper.appendChild(newPage);
+                        currentPage = newPage;
+                        
+                        currentWrapper = tableWrapper.cloneNode(false);
+                        currentTable = originalTable.cloneNode(false);
+                        currentWrapper.appendChild(currentTable);
+                        currentPage.appendChild(currentWrapper);
+                        
+                        currentTbody = document.createElement('tbody');
+                        if (thead) currentTable.appendChild(thead.cloneNode(true));
+                        currentTable.appendChild(currentTbody);
+                        
+                        currentTbody.appendChild(row);
+                    } else {
+                        // Create new page for remaining rows
+                        const newPage = createPage();
+                        wrapper.appendChild(newPage);
+                        currentPage = newPage;
+                        
+                        currentWrapper = tableWrapper.cloneNode(false);
+                        currentTable = originalTable.cloneNode(false);
+                        currentWrapper.appendChild(currentTable);
+                        currentPage.appendChild(currentWrapper);
+                        
+                        currentTbody = document.createElement('tbody');
+                        if (thead) currentTable.appendChild(thead.cloneNode(true));
+                        currentTable.appendChild(currentTbody);
+                        
+                        currentTbody.appendChild(row);
+                    }
+                }
+            }
+        }
+
+        function scaleResume() {
+            const viewer = document.getElementById('viewer-container');
+            const wrapper = document.getElementById('pages-wrapper');
+            const pages = document.querySelectorAll('.resume-container');
+            
+            if (pages.length === 0) return;
+            
+            const padding = 10; 
+            const originalWidth = pages[0].offsetWidth; // 210mm in px
             const windowWidth = window.innerWidth;
             
             let scale = 1;
@@ -481,15 +634,28 @@
                 scale = (windowWidth - (padding * 2)) / originalWidth;
             }
             
-            container.style.transform = `scale(${scale})`;
-            container.style.transformOrigin = 'top left';
+            // Scale the wrapper
+            wrapper.style.transform = `scale(${scale})`;
+            wrapper.style.transformOrigin = 'center';
             
-            const originalHeight = container.offsetHeight;
-            viewer.style.height = `${originalHeight * scale}px`;
-            viewer.style.width = `${originalWidth * scale}px`;
+            // Adjust viewer size to fit the scaled wrapper
+            const wrapperHeight = wrapper.offsetHeight;
+            const wrapperWidth = wrapper.offsetWidth;
+            
+            viewer.style.width = `${wrapperWidth * scale}px`;
+            viewer.style.height = `${wrapperHeight * scale}px`;
+            
+            // Center it if scaled down
+            if (scale < 1) {
+                 viewer.style.margin = '0 auto';
+            }
         }
 
-        window.addEventListener('load', scaleResume);
+        window.addEventListener('load', () => {
+            paginate();
+            scaleResume();
+        });
+
         window.addEventListener('resize', scaleResume);
     </script>
 
