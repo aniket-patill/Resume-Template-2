@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Added maximum-scale to prevent auto-zoom glitches on reload -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Padam Bhansali CV</title>
     <style>
-        /* CORE SCALING LOGIC: 
-           All units are in 'vw' (viewport width). 
-           This ensures 100% consistency across all devices.
-        */
+        /* ---------------------------------------------------------
+           CORE VARIABLES
+           --------------------------------------------------------- */
         :root {
             --blue-header: #264e80;
             --border-color: #bfbfbf;
@@ -16,10 +16,18 @@
             --bg-white: #ffffff;
             --font-main: 'Times New Roman', Times, serif;
             --viewer-bg: #525659;
-            /* A4 Ratio: 210mm x 297mm = 1:1.414 */
-            /* We use 96vw width, so height = 96 * 1.414 = ~135.75vw */
-            --page-width: 96vw;
-            --page-height: 135.75vw;
+
+            /* A4 DIMENSIONS (Fixed Reference) */
+            --ref-width: 1000px;
+            --ref-height: 1414px; /* 1:1.414 Ratio */
+            
+            /* DYNAMIC SCALING FACTOR (Controlled by JS for shrinking content) */
+            --content-scale: 1; 
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         * {
@@ -33,138 +41,137 @@
         body {
             background-color: var(--viewer-bg);
             font-family: var(--font-main);
-            overflow-x: hidden;
+            overflow-x: hidden; /* Vital */
             min-height: 100vh;
             width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        html {
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-
-        /* PDF VIEWER CONTAINER */
-        .pdf-viewer {
-            width: 100%;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 2vw;
-            padding-bottom: 2vw;
         }
 
-        /* HIDDEN SOURCE CONTENT */
-        #source-content {
-            display: none;
-        }
-
-        /* A4 PAGE CONTAINER */
-        .cv-page {
-            width: var(--page-width);
-            height: var(--page-height); /* Strict A4 Height */
-            background: var(--bg-white);
-            padding: 2vw 3vw;
-            position: relative;
-            box-shadow: 0 1vw 2vw rgba(0,0,0,0.5);
-            margin-bottom: 2vw; /* Gap between pages */
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Content Area inside the page to handle padding/margins properly */
-        .content-area {
-            flex: 1;
+        /* WRAPPER FIX: 
+           This isolates the large 1000px page from the viewport.
+           The browser only sees this container (width: 100%), so it won't 
+           auto-zoom to fit the huge 1000px child.
+        */
+        #zoom-wrapper {
             width: 100%;
+            overflow: hidden; /* Hides the overflow of the scaled element */
             display: flex;
-            flex-direction: column;
-            overflow: hidden; /* Important for JS detection */
+            justify-content: center;
+            padding-top: 20px;
+            padding-bottom: 20px;
         }
 
         /* ---------------------------------------------------------
-           STYLES (Copied & Adapted)
+           THE SHEET (A4 CONTAINER)
            --------------------------------------------------------- */
+        .cv-page {
+            /* Fixed Dimensions based on reference */
+            width: var(--ref-width);
+            height: var(--ref-height);
+            background: var(--bg-white);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            
+            /* Initial Padding (Scaled by content-scale) */
+            padding: calc(30px * var(--content-scale)) calc(40px * var(--content-scale));
+            
+            display: flex;
+            flex-direction: column;
+            
+            /* Prevent flexbox from squashing the width */
+            flex-shrink: 0; 
+
+            /* Origin for transform scaling */
+            transform-origin: top center;
+        }
+
+        /* CONTENT STYLES */
+        .cv-page { font-size: calc(16px * var(--content-scale)); }
+
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 0.1vw;
-            padding-bottom: 0.1vw;
-            flex-shrink: 0;
+            margin-bottom: calc(5px * var(--content-scale));
+            padding-bottom: calc(5px * var(--content-scale));
         }
 
         .name {
-            font-size: 3.8vw;
+            font-size: calc(42px * var(--content-scale));
             font-weight: 900;
             color: var(--text-black);
             line-height: 1;
         }
 
         .subtitle {
-            font-size: 2.1vw;
+            font-size: calc(20px * var(--content-scale));
             color: #555;
             font-weight: bold;
             text-align: right;
-            padding-bottom: 0.5vw;
+            padding-bottom: calc(5px * var(--content-scale));
         }
 
-        /* The Gray Contact Bar */
+        /* Contact Bar */
         .contact-bar {
-            background-color: #f2f2f2; /* Exact light grey */
+            background-color: #f2f2f2;
             display: flex;
-            justify-content: space-between; /* Spreads items evenly */
+            justify-content: space-between;
             align-items: center;
-            font-size: 1.8vw;
-            flex-wrap: nowrap;
-            padding: 0.3vmin 3.4vmin;
-            /* margin-top: 0.45vmin; */
-            margin-left: -3.1vmin;
-            margin-right: -3.1vmin;
-            margin-bottom: 0.5vw;;
+            font-size: calc(16px * var(--content-scale));
+            padding: calc(6px * var(--content-scale)) calc(35px * var(--content-scale));
+            margin-left: calc(-40px * var(--content-scale));
+            margin-right: calc(-40px * var(--content-scale));
+            margin-bottom: calc(10px * var(--content-scale));
+            border-top: calc(2px * var(--content-scale)) solid #000;
+            border-bottom: calc(2px * var(--content-scale)) solid #000;
         }
 
         .contact-item {
             display: flex;
-            flex-wrap: nowrap;
             align-items: center;
-            gap: 0.5vw;
+            gap: calc(5px * var(--content-scale));
         }
 
         .contact-item a {
             text-decoration: none;
             color: blue;
-            border-bottom: 0.1vw solid blue;
+            border-bottom: 1px solid blue;
         }
 
         .icon {
-            width: 1.8vw;
-            height: 1.8vw;
+            width: calc(18px * var(--content-scale));
+            height: calc(18px * var(--content-scale));
             fill: #000;
         }
 
+        /* Sections */
         .section-header {
             background-color: var(--blue-header);
             color: white;
             font-weight: bold;
-            padding: 0.2vw 0.8vw;
-            font-size: 1.5vw;
+            padding: calc(4px * var(--content-scale)) calc(10px * var(--content-scale));
+            font-size: calc(18px * var(--content-scale));
             text-transform: uppercase;
-            border: 0.1vw solid var(--blue-header);
-            flex-shrink: 0;
+            border: 1px solid var(--blue-header);
+            margin-top: calc(12px * var(--content-scale));
+            margin-bottom: calc(5px * var(--content-scale));
         }
 
+        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 1.5vw;
+            font-size: calc(16px * var(--content-scale));
+            margin-bottom: calc(5px * var(--content-scale));
         }
 
         th, td {
-            border: 0.15vw solid var(--border-color);
-            padding: 0.1vw 0.2vw;
+            border: 1px solid var(--border-color);
+            padding: calc(4px * var(--content-scale)) calc(6px * var(--content-scale));
             vertical-align: middle;
             text-align: center;
         }
@@ -172,41 +179,30 @@
         .qual-table th {
             background-color: #f9f9f9;
             font-weight: 900;
-            font-size: 1.3vw;
+            font-size: calc(15px * var(--content-scale));
         }
+        
+        .qual-table td { font-weight: 500; }
+        .merged-cell { font-weight: bold; line-height: 1.2; }
+        .b { font-weight: 900; }
 
-        .qual-table td {
-            font-weight: 500;
-        }
-
-        .merged-cell {
-            font-weight: bold;
-            line-height: 1;
-        }
-
-        /* Work Exp Header */
+        /* Work Experience */
         .work-exp-header {
             background-color: #f2f2f2;
             font-weight: 900;
             text-align: left;
-            padding: 0.2vw 1vw;
-            border: 0.15vw solid var(--border-color);
+            padding: calc(4px * var(--content-scale)) calc(10px * var(--content-scale));
+            border: 1px solid var(--border-color);
             border-top: none;
-            font-size: 1.7vw;
+            font-size: calc(17px * var(--content-scale));
             display: flex;
             justify-content: space-between;
-            flex-shrink: 0;
-        }
-        
-        /* Utility class to force top border if split */
-        .force-top-border {
-            border-top: 0.15vw solid var(--border-color) !important;
         }
 
         .work-table td {
             text-align: left;
             vertical-align: top;
-            padding: 0.8vw;
+            padding: calc(6px * var(--content-scale));
         }
 
         .role-col {
@@ -225,26 +221,24 @@
 
         .bullet-list {
             list-style-type: none;
-            padding-left: 1.5vw;
+            padding-left: calc(15px * var(--content-scale));
+            margin: 0;
         }
 
         .bullet-list li {
             position: relative;
-            margin-bottom: 0.4vw;
-            line-height: 1.1;
+            margin-bottom: calc(3px * var(--content-scale));
+            line-height: 1.2;
         }
 
         .bullet-list li::before {
             content: "▪";
             position: absolute;
-            left: -1.5vw;
+            left: calc(-15px * var(--content-scale));
             top: 0;
-            font-size: 1.8vw;
-            line-height: 1.2;
+            font-size: 1.2em;
         }
 
-        .b { font-weight: 900; }
-        
         .extra-table td.category {
             background-color: #f2f2f2;
             font-weight: 900;
@@ -259,412 +253,287 @@
             vertical-align: top;
         }
 
-        .extra-table .bullet-list {
-            text-align: justify;
-        }
+        .no-top-border { border-top: none; }
 
-        .no-top-border {
-            border-top: none;
-        }
-
-        /* Printing Specifics */
+        /* PRINT STYLES */
         @media print {
-            @page {
-                margin: 0; /* Eliminate browser default margins */
-                size: auto; 
-            }
-
-            body {
-                background: white;
-                display: block; /* Remove flex centering to avoid print layout issues */
-                margin: 0;
-                padding: 0;
+            body { background: white; padding: 0; margin: 0; display: block; }
+            #zoom-wrapper { display: block; overflow: visible; padding: 0; }
+            .cv-page {
+                box-shadow: none;
+                transform: none !important; 
                 width: 100%;
                 height: 100%;
-                overflow: visible;
-            }
-
-            .pdf-viewer {
-                padding: 0;
                 margin: 0;
-                display: block;
-                width: 100%;
-            }
-
-            .cv-page {
-                margin: 0;
-                padding: 2vw 3vw; /* Keep internal padding */
-                box-shadow: none;
-                width: 100%;
-                height: auto; /* Let content flow naturally on paper to avoid cutting off */
-                min-height: 100%; /* Ensure it fills the page */
-                page-break-after: always;
-                border: none;
-                left: 0;
-                top: 0;
-            }
-
-            /* Remove break after the last page to prevent blank sheet */
-            .cv-page:last-child {
-                page-break-after: auto;
+                page-break-after: avoid;
             }
         }
-
     </style>
 </head>
 <body>
 
-    <!-- VISIBLE CONTAINER FOR PAGES -->
-    <div class="pdf-viewer" id="viewer">
-        <!-- Pages will be injected here by JS -->
+    <!-- WRAPPER FIX -->
+    <div id="zoom-wrapper">
+        <!-- SINGLE A4 PAGE -->
+        <div class="cv-page" id="cv-page">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="name">Padam Bhansali</div>
+                <div class="subtitle">Chartered Accountant (Nov’24) | Flipkart</div>
+            </div>
+
+            <!-- CONTACT BAR -->
+            <div class="contact-bar">
+                <div class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    <a href="mailto:Bhansalipadam7@gmail.com">Bhansalipadam7@gmail.com</a>
+                </div>
+                <div class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    <span>+91 9313148303</span>
+                </div>
+                <div class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span>Bengaluru</span>
+                </div>
+                <div class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-1.41 0-2.04 1.04-2.39 1.73v-1.48h-2.67V18.5h2.67v-4.27c0-1.13.21-2.23 1.63-2.23 1.41 0 1.41 1.32 1.41 2.27v4.23h2.61zM6.67 8.48A1.55 1.55 0 1 0 5.12 6.93a1.53 1.53 0 0 0 1.55 1.55zm1.33 10.02V9.75H5.34v8.75h2.66z"/></svg>
+                    <a href="https://www.linkedin.com/in/ca-padam-bhansali">linkedin.com/in/ca-padam-bhansali</a>
+                </div>
+            </div>
+
+            <!-- QUALIFICATIONS -->
+            <div class="section-header">PROFESSIONAL & EDUCATIONAL QUALIFICATIONS</div>
+            <table class="qual-table">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">EXAMINATION</th>
+                        <th style="width: 12%;">YEAR</th>
+                        <th style="width: 36%;">INSTITUTION</th>
+                        <th style="width: 12%;">PERCENTAGE</th>
+                        <th style="width: 18%;">REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CA Final</td>
+                        <td>Nov 2024</td>
+                        <td rowspan="3" class="merged-cell">The Institute of Chartered Accountants of India<br>(Cleared all levels in first attempt)</td>
+                        <td>68%</td>
+                        <td class="b">State Rank 1</td>
+                    </tr>
+                    <tr>
+                        <td>CA Intermediate</td>
+                        <td>Nov 2021</td>
+                        <td>60%</td>
+                        <td>Exemption in All Group 1 Papers</td>
+                    </tr>
+                    <tr>
+                        <td>CA Foundation</td>
+                        <td>Nov 2020</td>
+                        <td>75%</td>
+                        <td>70+ Score in all subjects</td>
+                    </tr>
+                    <tr>
+                        <td>B.Com</td>
+                        <td>Mar 2023</td>
+                        <td>RJTCC (Gujarat University)</td>
+                        <td>76%</td>
+                        <td>First Class Distinction</td>
+                    </tr>
+                    <tr>
+                        <td>Class XII (GSEB)</td>
+                        <td>Mar 2020</td>
+                        <td>Devasya International School</td>
+                        <td>88%</td>
+                        <td>School Rank 1</td>
+                    </tr>
+                    <tr>
+                        <td>Class X (TSEB)</td>
+                        <td>Mar 2018</td>
+                        <td>New Vision School</td>
+                        <td>92%</td>
+                        <td>School Rank 1</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- WORK EXPERIENCE -->
+            <div class="section-header">WORK EXPERIENCE</div>
+            
+            <div class="work-exp-header no-top-border">
+                <span>Flipkart (Bengaluru) – Industrial Trainee (Business Finance)</span>
+                <span>(Dec’23 – Present)</span>
+            </div>
+            <table class="work-table">
+                <tr>
+                    <td class="role-col">Business Finance</td>
+                    <td class="desc-col">
+                        <ul class="bullet-list">
+                            <li>Assisted in identifying and implementing <span class="b">cost-saving strategies</span> across PAN India Fulfillment and Sortation Centers, driving operational efficiency and contributing to <span class="b">Annual Savings of ₹100 Crores</span>.</li>
+                            <li>Assisted in the <span class="b">optimization and finalization of monthly plans</span> for over ₹100 crore in monthly operating expenses. Collaborated with multiple stakeholders including Planning, Operations, Design, HR, and Procurement.</li>
+                            <li>Facilitated in an approximate <span class="b">₹50 lakh monthly cost reduction</span> by eliminating buffers, design improvements and better cross -deployment of manpower.</li>
+                            <li>Efficiently <span class="b">managed multiple responsibilities</span> alongside core duties, including overseeing the accrual process for the South Zone, supporting the Zonal Finance Team, managing finance involved in large inventory supply chain.</li>
+                            <li>Prepared a comprehensive <span class="b">dashboard to track Operative KPIs</span> across different functions and monitor manpower changes (site-wise and function-wise). Solely responsible for reporting results and conclusions from the analysis to the upper management.</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="work-exp-header no-top-border" style="border-top: none;">
+                <span>Goenka Mehta & Associates (Ahmedabad) – Article Assistant (Accounting)</span>
+                <span>(Jan’23 – Nov’23)</span>
+            </div>
+            <table class="work-table">
+                <tr>
+                    <td class="role-col">Accounting</td>
+                    <td class="desc-col">
+                        <ul class="bullet-list">
+                            <li>Managed <span class="b">end-to-end accounting processes</span> for New Zealand based companies, resulting in higher accuracy in their financial records and streamlined accounting workflows.</li>
+                            <li>Ensured timely <span class="b">statutory compliance</span>, reducing penalties through efficient GST filing and taxation-related services for offshore clients.</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="work-exp-header no-top-border" style="border-top: none;">
+                <span>Kantilal Patel & Co. (Ahmedabad) – Article Assistant (Auditing and Assurance)</span>
+                <span>(Apr’22 – Dec’22)</span>
+            </div>
+            <table class="work-table">
+                <tr>
+                    <td class="role-col">Auditing & Assurance</td>
+                    <td class="desc-col">
+                        <ul class="bullet-list">
+                            <li>Assisted in <span class="b">statutory audit</span> of a cooperative bank with over 75 branches, <span class="b">₹10,000 Cr in deposits</span>, identifying critical areas of improvement.</li>
+                            <li>Conducted comprehensive <span class="b">statutory audits, tax audits, GST audits</span>, and <span class="b">internal audits</span> for 30+ clients across industries such as healthcare, construction, VC's, tobacco, ice cream manufacturing, e-commerce, logistics etc.</li>
+                            <li>Prepared and <span class="b">filed income tax returns</span> for individuals, trusts, and companies, optimizing tax savings through tax planning and claiming deductions under various sections, assisted in <span class="b">GST filing</span> for various organizations, ensuring timely and accurate submissions.</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- EXTRA CURRICULAR -->
+            <div class="section-header">EXTRA CURRICULAR ACTIVTIES, SKILLS, ACHIEVEMENTS & INTERESTS</div>
+            <table class="extra-table">
+                <tbody>
+                    <tr>
+                        <td class="category">Position of Responsibility</td>
+                        <td class="details">
+                            <div style="display:flex; justify-content:space-between; font-weight:900; margin-bottom:0.4vw;">
+                                <span>My Student Club – Founder</span>
+                                <span>(Dec’22 – Present)</span>
+                            </div>
+                            <ul class="bullet-list">
+                                <li>A student social networking platform, achieving <span class="b">5000+ member registrations</span> within first quarter with monthly <span class="b">50K+ site visits</span>, growing a <span class="b">25-member team.</span></li>
+                                <li>Organized <span class="b">100+ guidance sessions</span> on CA preparation, industrial training, and skill development, featuring Shark Tank pitchers, influencers, and AIR 1 holders, positively impacting 10,000+ participants.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="category">Technical Skills</td>
+                        <td class="details">
+                            <ul class="bullet-list">
+                                <li>Proficient in MS-Office (<span class="b">Excel, Word & PowerPoint</span>), Google Tools (<span class="b">Sheets & Slides</span>).</li>
+                                <li>Working Knowledge of <span class="b">Power Bi</span>.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="category">Significant Awards & Certifications</td>
+                        <td class="details">
+                            <ul class="bullet-list">
+                                <li>Certified <span class="b">Financial Modeling & Valuation Analyst (FMVA)</span> by CFI.</li>
+                                <li>Obtained <span class="b">Research Analyst</span> Certification from NISM.</li>
+                                <li>Received a Certificate from <span class="b">Trinity College of London</span> in English Speaking.</li>
+                                <li>Awarded with <span class="b">Employee of the Quarter</span> (Performance Award) at Flipkart during the Internship period.</li>
+                                <li>Achieved <span class="b">advanced-level certifications</span> in Power BI and MS Excel.</li>
+                                <li>Consistently ranked among the <span class="b">top 3 throughout academics</span>.</li>
+                                <li><span class="b">Winner of Group Discussion</span> Competition in MCS.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="category">Extra-Curricular</td>
+                        <td class="details">
+                            <ul class="bullet-list">
+                                <li>Built & grew StepFly (Online CA Lecture Portal) to <span class="b">₹1 Crore in annual revenue</span>.</li>
+                                <li><span class="b">Hosted</span> various sessions with 1000+ participants and participated as <span class="b">Speaker</span> for student guidance programs.</li>
+                                <li>Authored multiple articles featured in <span class="b">ICAI Newsletters</span>.</li>
+                                <li><span class="b">Investor</span> in stock market & crypto since age 14.</li>
+                                <li>Contributed as <span class="b">Volunteer</span> at Ahmedabad National Conference.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="category">Interests</td>
+                        <td class="details">
+                            <ul class="bullet-list">
+                                <li><span class="b">Content Writing</span>: Grown LinkedIn following to 10K+ with over 1 million impressions.</li>
+                                <li><span class="b">Cricket</span>: <span class="b">Man of the Match</span> in Flipkart Finance Team corporate cricket league.</li>
+                                <li><span class="b">Business Research</span>: Enthusiastic about analyzing businesses through studying research reports and financials.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- HIDDEN SOURCE CONTENT -->
-    <!-- This holds the raw HTML elements that we will distribute into pages -->
-    <div id="source-content">
-        
-        <!-- HEADER -->
-        <div class="header">
-            <div class="name">Padam Bhansali</div>
-            <div class="subtitle">Chartered Accountant (Nov’24) | Flipkart</div>
-        </div>
-
-        <!-- CONTACT BAR -->
-        <div class="contact-bar">
-            <div class="contact-item">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                <a href="mailto:Bhansalipadam7@gmail.com">Bhansalipadam7@gmail.com</a>
-            </div>
-            <div class="contact-item">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                <span>+91 9313148303</span>
-            </div>
-            <div class="contact-item">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Bengaluru</span>
-            </div>
-            <div class="contact-item">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-1.41 0-2.04 1.04-2.39 1.73v-1.48h-2.67V18.5h2.67v-4.27c0-1.13.21-2.23 1.63-2.23 1.41 0 1.41 1.32 1.41 2.27v4.23h2.61zM6.67 8.48A1.55 1.55 0 1 0 5.12 6.93a1.53 1.53 0 0 0 1.55 1.55zm1.33 10.02V9.75H5.34v8.75h2.66z"/></svg>
-                <a href="https://www.linkedin.com/in/ca-padam-bhansali">linkedin.com/in/ca-padam-bhansali</a>
-            </div>
-        </div>
-
-        <!-- SECTION 1: QUALIFICATIONS -->
-        <div class="section-header">PROFESSIONAL & EDUCATIONAL QUALIFICATIONS</div>
-        <table class="qual-table">
-            <thead>
-                <tr>
-                    <th style="width: 22%;">EXAMINATION</th>
-                    <th style="width: 12%;">YEAR</th>
-                    <th style="width: 36%;">INSTITUTION</th>
-                    <th style="width: 12%;">PERCENTAGE</th>
-                    <th style="width: 18%;">REMARKS</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>CA Final</td>
-                    <td>Nov 2024</td>
-                    <td rowspan="3" class="merged-cell">The Institute of Chartered Accountants of India<br>(Cleared all levels in first attempt)</td>
-                    <td>68%</td>
-                    <td class="b">State Rank 1</td>
-                </tr>
-                <tr>
-                    <td>CA Intermediate</td>
-                    <td>Nov 2021</td>
-                    <td>60%</td>
-                    <td>Exemption in All Group 1 Papers</td>
-                </tr>
-                <tr>
-                    <td>CA Foundation</td>
-                    <td>Nov 2020</td>
-                    <td>75%</td>
-                    <td>70+ Score in all subjects</td>
-                </tr>
-                <tr>
-                    <td>B.Com</td>
-                    <td>Mar 2023</td>
-                    <td>RJTCC (Gujarat University)</td>
-                    <td>76%</td>
-                    <td>First Class Distinction</td>
-                </tr>
-                <tr>
-                    <td>Class XII (GSEB)</td>
-                    <td>Mar 2020</td>
-                    <td>Devasya International School</td>
-                    <td>88%</td>
-                    <td>School Rank 1</td>
-                </tr>
-                <tr>
-                    <td>Class X (TSEB)</td>
-                    <td>Mar 2018</td>
-                    <td>New Vision School</td>
-                    <td>92%</td>
-                    <td>School Rank 1</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- SECTION 2: WORK EXPERIENCE -->
-        <div class="section-header">WORK EXPERIENCE</div>
-        
-        <!-- Experience 1 -->
-        <div class="work-exp-header no-top-border">
-            <span>Flipkart (Bengaluru) – Industrial Trainee (Business Finance)</span>
-            <span>(Dec’23 – Present)</span>
-        </div>
-        <table class="work-table">
-            <tr>
-                <td class="role-col">Business Finance</td>
-                <td class="desc-col">
-                    <ul class="bullet-list">
-                        <li>Assisted in identifying and implementing <span class="b">cost-saving strategies</span> across PAN India Fulfillment and Sortation Centers, driving operational efficiency and contributing to <span class="b">Annual Savings of ₹100 Crores</span>.</li>
-                        <li>Assisted in the <span class="b">optimization and finalization of monthly plans</span> for over ₹100 crore in monthly operating expenses. Collaborated with multiple stakeholders including Planning, Operations, Design, HR, and Procurement.</li>
-                        <li>Facilitated in an approximate <span class="b">₹50 lakh monthly cost reduction</span> by eliminating buffers, design improvements and better cross -deployment of manpower.</li>
-                        <li>Efficiently <span class="b">managed multiple responsibilities</span> alongside core duties, including overseeing the accrual process for the South Zone, supporting the Zonal Finance Team, managing finance involved in large inventory supply chain.</li>
-                        <li>Prepared a comprehensive <span class="b">dashboard to track Operative KPIs</span> across different functions and monitor manpower changes (site-wise and function-wise). Solely responsible for reporting results and conclusions from the analysis to the upper management.</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
-
-        <!-- Experience 2 -->
-        <div class="work-exp-header no-top-border" style="border-top: none;">
-            <span>Goenka Mehta & Associates (Ahmedabad) – Article Assistant (Accounting)</span>
-            <span>(Jan’23 – Nov’23)</span>
-        </div>
-        <table class="work-table">
-            <tr>
-                <td class="role-col">Accounting</td>
-                <td class="desc-col">
-                    <ul class="bullet-list">
-                        <li>Managed <span class="b">end-to-end accounting processes</span> for New Zealand based companies, resulting in higher accuracy in their financial records and streamlined accounting workflows.</li>
-                        <li>Ensured timely <span class="b">statutory compliance</span>, reducing penalties through efficient GST filing and taxation-related services for offshore clients.</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
-
-        <!-- Experience 3 -->
-        <div class="work-exp-header no-top-border" style="border-top: none;">
-            <span>Kantilal Patel & Co. (Ahmedabad) – Article Assistant (Auditing and Assurance)</span>
-            <span>(Apr’22 – Dec’22)</span>
-        </div>
-        <table class="work-table">
-            <tr>
-                <td class="role-col">Auditing & Assurance</td>
-                <td class="desc-col">
-                    <ul class="bullet-list">
-                        <li>Assisted in <span class="b">statutory audit</span> of a cooperative bank with over 75 branches, <span class="b">₹10,000 Cr in deposits</span>, identifying critical areas of improvement.</li>
-                        <li>Conducted comprehensive <span class="b">statutory audits, tax audits, GST audits</span>, and <span class="b">internal audits</span> for 30+ clients across industries such as healthcare, construction, VC's, tobacco, ice cream manufacturing, e-commerce, logistics etc.</li>
-                        <li>Prepared and <span class="b">filed income tax returns</span> for individuals, trusts, and companies, optimizing tax savings through tax planning and claiming deductions under various sections, assisted in <span class="b">GST filing</span> for various organizations, ensuring timely and accurate submissions.</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
-
-        <!-- SECTION 3: EXTRA CURRICULAR -->
-        <div class="section-header">EXTRA CURRICULAR ACTIVTIES, SKILLS, ACHIEVEMENTS & INTERESTS</div>
-        <table class="extra-table">
-            <tbody>
-                <tr>
-                    <td class="category">Position of Responsibility</td>
-                    <td class="details">
-                        <div style="display:flex; justify-content:space-between; font-weight:900; margin-bottom:0.4vw;">
-                            <span>My Student Club – Founder</span>
-                            <span>(Dec’22 – Present)</span>
-                        </div>
-                        <ul class="bullet-list">
-                            <li>A student social networking platform, achieving <span class="b">5000+ member registrations</span> within first quarter with monthly <span class="b">50K+ site visits</span>, growing a <span class="b">25-member team.</span></li>
-                            <li>Organized <span class="b">100+ guidance sessions</span> on CA preparation, industrial training, and skill development, featuring Shark Tank pitchers, influencers, and AIR 1 holders, positively impacting 10,000+ participants.</li>
-                        </ul>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="category">Technical Skills</td>
-                    <td class="details">
-                        <ul class="bullet-list">
-                            <li>Proficient in MS-Office (<span class="b">Excel, Word & PowerPoint</span>), Google Tools (<span class="b">Sheets & Slides</span>).</li>
-                            <li>Working Knowledge of <span class="b">Power Bi</span>.</li>
-                        </ul>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="category">Significant Awards & Certifications</td>
-                    <td class="details">
-                        <ul class="bullet-list">
-                            <li>Certified <span class="b">Financial Modeling & Valuation Analyst (FMVA)</span> by CFI.</li>
-                            <li>Obtained <span class="b">Research Analyst</span> Certification from NISM.</li>
-                            <li>Received a Certificate from <span class="b">Trinity College of London</span> in English Speaking.</li>
-                            <li>Awarded with <span class="b">Employee of the Quarter</span> (Performance Award) at Flipkart during the Internship period.</li>
-                            <li>Achieved <span class="b">advanced-level certifications</span> in Power BI and MS Excel.</li>
-                            <li>Consistently ranked among the <span class="b">top 3 throughout academics</span>.</li>
-                            <li><span class="b">Winner of Group Discussion</span> Competition in MCS.</li>
-                        </ul>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="category">Extra-Curricular</td>
-                    <td class="details">
-                        <ul class="bullet-list">
-                            <li>Built & grew StepFly (Online CA Lecture Portal) to <span class="b">₹1 Crore in annual revenue</span>.</li>
-                            <li><span class="b">Hosted</span> various sessions with 1000+ participants and participated as <span class="b">Speaker</span> for student guidance programs.</li>
-                            <li>Authored multiple articles featured in <span class="b">ICAI Newsletters</span>.</li>
-                            <li><span class="b">Investor</span> in stock market & crypto since age 14.</li>
-                            <li>Contributed as <span class="b">Volunteer</span> at Ahmedabad National Conference.</li>
-                        </ul>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="category">Interests</td>
-                    <td class="details">
-                        <ul class="bullet-list">
-                            <li><span class="b">Content Writing</span>: Grown LinkedIn following to 10K+ with over 1 million impressions.</li>
-                            <li><span class="b">Cricket</span>: <span class="b">Man of the Match</span> in Flipkart Finance Team corporate cricket league.</li>
-                            <li><span class="b">Business Research</span>: Enthusiastic about analyzing businesses through studying research reports and financials.</li>
-                        </ul>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- PAGINATION SCRIPT -->
+    <!-- SCRIPT -->
     <script>
-        // Main function to render CV pages
-        function paginateCV() {
-            const source = document.getElementById('source-content');
-            const viewer = document.getElementById('viewer');
+        // 1. SCALING LOGIC (Visual Zoom)
+        function scaleToFit() {
+            const page = document.getElementById('cv-page');
+            const wrapper = document.getElementById('zoom-wrapper');
+            const windowWidth = window.innerWidth;
+            const targetWidth = windowWidth - 20; // 10px padding on each side for mobile feeling
+            const refWidth = 1000; // The fixed width of our .cv-page in CSS
+
+            let scale = 1;
             
-            // Clear current view
-            viewer.innerHTML = '';
+            // Only scale down if screen is smaller than reference
+            if (targetWidth < refWidth) {
+                scale = targetWidth / refWidth;
+            }
 
-            // Configuration
-            const nodes = Array.from(source.children); // Get all top-level elements
+            page.style.transform = `scale(${scale})`;
             
-            // Create First Page
-            let currentPage = createPage();
-            viewer.appendChild(currentPage);
-            let contentArea = currentPage.querySelector('.content-area');
+            // Adjust margin bottom to remove whitespace created by scaling
+            const refHeight = 1414;
+            const currentVisualHeight = refHeight * scale;
+            const spaceToRemove = refHeight - currentVisualHeight;
+            page.style.marginBottom = `-${spaceToRemove}px`;
+        }
 
-            // Iterate through all content nodes
-            for (let i = 0; i < nodes.length; i++) {
-                const originalNode = nodes[i];
-                // Clone deeply to not affect source
-                const node = originalNode.cloneNode(true);
-                
-                contentArea.appendChild(node);
+        // 2. SHRINK TO FIT LOGIC (Content Compression)
+        function shrinkContentToFit() {
+            const page = document.getElementById('cv-page');
+            const maxHeight = 1414; 
+            
+            let contentScale = 1;
+            document.documentElement.style.setProperty('--content-scale', contentScale);
 
-                // CHECK OVERFLOW
-                if (hasOverflow(contentArea)) {
-                    // Remove the node that caused overflow
-                    contentArea.removeChild(node);
-
-                    // Strategy: 
-                    // 1. If it's a TABLE, try to split rows.
-                    // 2. If it's not a table, move entire node to next page.
-
-                    if (node.tagName === 'TABLE') {
-                        // Handle Table Splitting
-                        splitTableAcrossPages(node, currentPage, viewer);
-                        
-                        // After splitting, update our references to the "end" of the document
-                        // so next nodes go to the correct page
-                        const pages = viewer.querySelectorAll('.cv-page');
-                        currentPage = pages[pages.length - 1];
-                        contentArea = currentPage.querySelector('.content-area');
-                    } else {
-                        // Standard Element: Move to new page
-                        currentPage = createPage();
-                        viewer.appendChild(currentPage);
-                        contentArea = currentPage.querySelector('.content-area');
-                        contentArea.appendChild(node);
-                    }
-                }
+            let iterations = 0;
+            while (page.scrollHeight > maxHeight && iterations < 50) {
+                contentScale -= 0.02; 
+                document.documentElement.style.setProperty('--content-scale', contentScale);
+                iterations++;
             }
         }
 
-        // Helper: Check if content area is overflowing
-        // Helper: Check if content area is overflowing
-        function hasOverflow(element) {
-            // Use Math.ceil to handle sub-pixel rendering differences
-            // Allow a small buffer (2px) for rounding errors in small viewports
-            return Math.ceil(element.scrollHeight) > Math.ceil(element.clientHeight) + 2;
+        function init() {
+            shrinkContentToFit(); 
+            scaleToFit();         
         }
 
-        // Helper: Create a new blank A4 page
-        function createPage() {
-            const page = document.createElement('div');
-            page.className = 'cv-page';
-            const content = document.createElement('div');
-            content.className = 'content-area';
-            page.appendChild(content);
-            return page;
-        }
-
-        // Complex Logic: Split a table across pages
-        function splitTableAcrossPages(tableNode, currentPage, viewer) {
-            const rows = Array.from(tableNode.querySelectorAll('tbody tr'));
-            const hasThead = tableNode.querySelector('thead');
-            
-            // 1. Add table container to current page (with Thead if exists)
-            // Clone table structure without tbody rows
-            let currentTable = tableNode.cloneNode(true);
-            const oldTbody = currentTable.querySelector('tbody');
-            if(oldTbody) oldTbody.innerHTML = ''; // Clear rows
-            
-            // If original table had no tbody (rare but possible in messy html), use table root
-            // But our HTML is structured with tbody usually, or direct tr.
-            // Let's ensure we append rows to the correct parent.
-            let targetContainer = oldTbody ? oldTbody : currentTable;
-
-            // Append this empty shell to current page
-            let contentArea = currentPage.querySelector('.content-area');
-            contentArea.appendChild(currentTable);
-
-            // 2. Iterate rows and insert
-            for (let r = 0; r < rows.length; r++) {
-                const row = rows[r].cloneNode(true);
-                targetContainer.appendChild(row);
-
-                // Check overflow
-                if (hasOverflow(contentArea)) {
-                    // Row didn't fit. Remove it.
-                    targetContainer.removeChild(row);
-
-                    // Create NEW Page
-                    const newPage = createPage();
-                    viewer.appendChild(newPage);
-                    contentArea = newPage.querySelector('.content-area');
-
-                    // Create NEW Table shell for new page
-                    currentTable = tableNode.cloneNode(true);
-                    const newTbody = currentTable.querySelector('tbody');
-                    if(newTbody) newTbody.innerHTML = '';
-                    targetContainer = newTbody ? newTbody : currentTable;
-                    
-                    // Add this new table shell to new page
-                    contentArea.appendChild(currentTable);
-                    
-                    // Add the row again
-                    targetContainer.appendChild(row);
-                    
-                    // Note: If a single row is taller than a whole page, this loop will create infinite pages.
-                    // Assuming rows are reasonable height.
-                }
-            }
-        }
-
-        // Run on load
-        window.onload = paginateCV;
-
-        // Re-run on resize (debounced) to handle pixel calculation changes due to VW
+        window.addEventListener('load', init);
+        
         let resizeTimer;
-        window.onresize = function() {
+        window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(paginateCV, 100);
-        };
-
+            resizeTimer = setTimeout(scaleToFit, 100); 
+        });
     </script>
 </body>
 </html>
