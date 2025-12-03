@@ -126,8 +126,6 @@
             margin-left: calc(-40px * var(--content-scale));
             margin-right: calc(-40px * var(--content-scale));
             margin-bottom: calc(10px * var(--content-scale));
-            border-top: calc(2px * var(--content-scale)) solid #000;
-            border-bottom: calc(2px * var(--content-scale)) solid #000;
         }
 
         .contact-item {
@@ -157,8 +155,8 @@
             font-size: calc(18px * var(--content-scale));
             text-transform: uppercase;
             border: 1px solid var(--blue-header);
-            margin-top: calc(12px * var(--content-scale));
-            margin-bottom: calc(5px * var(--content-scale));
+            /* margin-top: calc(12px * var(--content-scale));
+            margin-bottom: calc(5px * var(--content-scale)); */
         }
 
         /* Tables */
@@ -166,12 +164,11 @@
             width: 100%;
             border-collapse: collapse;
             font-size: calc(16px * var(--content-scale));
-            margin-bottom: calc(5px * var(--content-scale));
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: calc(4px * var(--content-scale)) calc(6px * var(--content-scale));
+            padding: calc(2px * var(--content-scale)) calc(3px * var(--content-scale));
             vertical-align: middle;
             text-align: center;
         }
@@ -183,7 +180,7 @@
         }
         
         .qual-table td { font-weight: 500; }
-        .merged-cell { font-weight: bold; line-height: 1.2; }
+        .merged-cell { font-weight: bold; line-height: 1.1; }
         .b { font-weight: 900; }
 
         /* Work Experience */
@@ -228,7 +225,7 @@
         .bullet-list li {
             position: relative;
             margin-bottom: calc(3px * var(--content-scale));
-            line-height: 1.2;
+            line-height: 1.05;
         }
 
         .bullet-list li::before {
@@ -254,20 +251,56 @@
         }
 
         .no-top-border { border-top: none; }
-
-        /* PRINT STYLES */
+ /* ---------------------------------------------------------
+           PRINT STYLES - STRICT SINGLE PAGE A4
+           --------------------------------------------------------- */
         @media print {
-            body { background: white; padding: 0; margin: 0; display: block; }
-            #zoom-wrapper { display: block; overflow: visible; padding: 0; }
-            .cv-page {
-                box-shadow: none;
-                transform: none !important; 
-                width: 100%;
-                height: 100%;
+            @page {
+                size: A4 portrait;
                 margin: 0;
-                page-break-after: avoid;
+            }
+
+            html,
+            body {
+                width: 210mm;
+                height: 297mm;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
+            }
+
+            #zoom-wrapper {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                transform: none !important; /* Reset transform */
+            }
+
+            .cv-page {
+                width: 1000px !important; /* Keep design width */
+                /* height: 1414px !important;  Keep design height */
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                
+                /* SCALE TO A4 */
+                /* 210mm / 1000px = ~0.7937 */
+                zoom: 0.7937; 
+                -moz-transform: scale(0.7937);
+                -moz-transform-origin: top center;
+                
+                /* Reset other transforms */
+                transform: none !important; 
+                position: static !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
             }
         }
+    </style>
     </style>
 </head>
 <body>
@@ -522,9 +555,52 @@
             }
         }
 
+        let screenTransform = '';
+        let screenMarginBottom = '';
+
+        function enablePrintMode() {
+            const page = document.getElementById('cv-page');
+            screenTransform = page.style.transform;
+            screenMarginBottom = page.style.marginBottom;
+            document.body.classList.add('print-mode');
+
+            page.style.transform = 'scale(1)';
+            page.style.marginBottom = '0px';
+
+            shrinkContentToFit();
+        }
+
+        function handlePrintChange(e) {
+            if (e.matches) {
+                enablePrintMode();
+            } else {
+                disablePrintMode();
+            }
+        }
+
+        function disablePrintMode() {
+            const page = document.getElementById('cv-page');
+            document.body.classList.remove('print-mode');
+
+            page.style.transform = screenTransform || '';
+            page.style.marginBottom = screenMarginBottom || '';
+
+            scaleToFit();
+        }
+
         function init() {
             shrinkContentToFit(); 
-            scaleToFit();         
+            scaleToFit();
+
+            const printMedia = window.matchMedia('print');
+            if (printMedia.addEventListener) {
+                printMedia.addEventListener('change', handlePrintChange);
+            } else if (printMedia.addListener) {
+                printMedia.addListener(handlePrintChange);
+            }
+
+            window.addEventListener('beforeprint', enablePrintMode);
+            window.addEventListener('afterprint', disablePrintMode);
         }
 
         window.addEventListener('load', init);
