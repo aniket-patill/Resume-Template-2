@@ -41,6 +41,11 @@
             align-items: flex-start;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
         /* PDF VIEWER CONTAINER */
         .pdf-viewer {
             width: 100%;
@@ -552,9 +557,11 @@
         }
 
         // Helper: Check if content area is overflowing
+        // Helper: Check if content area is overflowing
         function hasOverflow(element) {
-            // We use a small tolerance (1px) for sub-pixel rendering differences
-            return element.scrollHeight > element.clientHeight + 1;
+            // Use Math.ceil to handle sub-pixel rendering differences
+            // Allow a small buffer (2px) for rounding errors in small viewports
+            return Math.ceil(element.scrollHeight) > Math.ceil(element.clientHeight) + 2;
         }
 
         // Helper: Create a new blank A4 page
